@@ -1,0 +1,61 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+  
+}
+
+model User {
+  id Int @id @default(autoincrement())
+  email String @unique
+  password String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model Book {
+  id Int @id @default(autoincrement())
+  title String
+  description String
+  thumbnail_url String
+  
+  release_year Int
+  authors AuthorOnBook[]
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model Author {
+  id         Int      @id @default(autoincrement())
+  name       String   @unique
+  biography  String
+  birth_year Int
+  books      AuthorOnBook[]
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  
+}
+
+model Category {
+  id Int @id @default(autoincrement())
+  name String @unique
+  books Book []
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+}
+
+model AuthorOnBook {
+  id Int @id @default(autoincrement())
+  book Book @relation(fields: [book_id], references: [id])
+  book_id Int
+  author Author @relation(fields: [author_id], references: [id])
+  author_id Int
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+//npx prisma migrate dev --name add_category_model_with_relations tuleb teha peale migrates muudatusi
+
