@@ -1,4 +1,5 @@
 import { PrismaClientValidationError } from "@prisma/client/runtime/library";
+import ValidationError from "../utils/ValidationError.js";
 
 export const validate = (schema, source = 'body') => {
     return (request, response, next) => {

@@ -1,6 +1,8 @@
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import prisma from "../config/prisma.js";
+import ExistingEntityError from "../utils/ExistingEntityError.js";
+import AuthenticationError from "../utils/AuthenticationError.js";
 
 // REGISTER
 export const register = async (request, response, next) => {
@@ -19,11 +21,8 @@ export const register = async (request, response, next) => {
       where: { email },
     });
 
-    if (existingUser) {
-      return response.status(400).json({
-        message: "User already exists",
-      });
-    }
+    if (existingUser) throw new ExistingEntityError("Incorrect credentials");
+    
 
     // parooli hashimine
     const hashedPassword = await bcrypt.hash(password, 12);
@@ -36,9 +35,8 @@ export const register = async (request, response, next) => {
       },
     });
 
-    return response.status(201).json({
-      message: "User created successfully",
-    });
+    response.status(201);
+
   } catch (exception) {
     // lase error järgmisele middleware’ile
     next(exception);
@@ -50,6 +48,7 @@ export const login = async (request, response, next) => {
   
   try {
     const { email, password } = request.body;
+
 
     if (!email || !password) {
       return response.status(400).json({
@@ -69,11 +68,8 @@ export const login = async (request, response, next) => {
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
-    if (!isPasswordValid) {
-      return response.status(401).json({
-        message: "Invalid credentials",
-      });
-    }
+    if (!isPasswordValid) throw new AuthenticationError("invalid credentials");
+    
 
     // kontrolli, et sul on .env failis JWT_SECRET olemas
     const token = jwt.sign(
